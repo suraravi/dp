@@ -1,0 +1,342 @@
+#####################################################################################################################################################################
+
+# specify some unique suffix you want to describe this cluster (note that it will be used to as the subdomain, e.g. http://pa.manhdev.com)
+export DEPLOYMENT_SUFFIX=
+export EXTERNAL_DOMAIN=$(dnsdomainname)
+
+export SWARM_MANAGER_IP=$(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}')
+
+export LB_HTTP_PORT=80
+export LB_HTTPS_PORT=443
+export LB_DASHBOARD_PORT=10000
+
+export WM_PUBLIC_HOST=wm.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN}                        # If WM is running outside this SWARM cluster, change this to the HOSTNAME you would access WM through (either Loadbalancer or host's IP).
+export WM_PUBLIC_PORT=${LB_HTTP_PORT}                                                   # If WM is running outside this SWARM cluster, change this to the PORT you would access WM through (either Loadbalancer or host's IP).
+export WM_PUBLIC_URL=http://${WM_PUBLIC_HOST}:${WM_PUBLIC_PORT}
+
+export WM_APP_HTTPS_URL=https://${WM_PUBLIC_HOST}:${LB_HTTPS_PORT}
+export WM_APP_URL=${WM_PUBLIC_URL}
+
+# specify the certificate to add to the component trust store used for SSL communication with platform applications
+export SSL_TRUST_CERT=
+
+##############################################################################################################
+# If you have a loadbalancer, you should make LIST_OF_WM_JAVA_SERVERS a CSV list of servers
+#   to bypass the load balancer
+##############################################################################################################
+
+export LIST_OF_WM_JAVA_SERVERS=${WM_PUBLIC_HOST}:${WM_PUBLIC_PORT}
+
+##############################################################################################################
+
+##############################################################################################################
+# Protocol to use for call to WM platform application should be based on port used with LIST_OF_WM_JAVA_SERVERS
+# If https port is used with LIST_OF_WM_JAVA_SERVERS, configure WM_APP_RIBBON_PROTOCOL as https
+##############################################################################################################
+
+export WM_APP_RIBBON_PROTOCOL=http
+
+##############################################################################################################
+
+##############################################################################################################
+# Uncomment these lines if WM is running inside a docker container and part of this same SWARM cluster.
+## export WM_SWARM_HOST=wm
+## export WM_SWARM_PORT=80
+## export WM_SWARM_URL=http://${WM_SWARM_HOST}:${WM_SWARM_PORT}
+## export WM_APP_URL=${WM_SWARM_URL}
+## export LIST_OF_WM_JAVA_SERVERS=${WM_SWARM_HOST}:${WM_SWARM_PORT}
+##############################################################################################################
+
+
+export BROADCAST_ENABLED=true
+export BROKER_ACTIVEMQ_URI=tcp://activemq:61616
+export BROKER_ACTIVEMQ_CONSUMERURI="activemq:queue:{0}?asyncConsumer=true&concurrentConsumers={1}&acknowledgementModeName=CLIENT_ACKNOWLEDGE"
+
+export WM_IMG_TAG="bronze"
+export ROLLING_OS_TAG=2018-maint-gold
+
+#####################################################################################################################################################################
+# You do not need to set the following xx_TAG_NAME values - if they are not set, manage.sh will set them to be the current tags.
+
+export dcorder_TAG_NAME=${ROLLING_OS_TAG}
+export dcallocation_TAG_NAME=${ROLLING_OS_TAG}
+export workrelease_TAG_NAME=${ROLLING_OS_TAG}
+export lmcore_TAG_NAME=${ROLLING_OS_TAG}
+export masterdata_TAG_NAME=${ROLLING_OS_TAG}
+export cubing_TAG_NAME=${ROLLING_OS_TAG}
+export routing_TAG_NAME=${ROLLING_OS_TAG}
+export dcinventory_TAG_NAME=${ROLLING_OS_TAG}
+export deviceintegration_TAG_NAME=${ROLLING_OS_TAG}
+export olpn_TAG_NAME=${ROLLING_OS_TAG}
+export dmuifacade_TAG_NAME=${ROLLING_OS_TAG}
+export dmuisearch_TAG_NAME=${ROLLING_OS_TAG}
+export dcconsolidation_TAG_NAME=${ROLLING_OS_TAG}
+export dclayout_TAG_NAME=${ROLLING_OS_TAG}
+export mdaorgadapter_TAG_NAME=${ROLLING_OS_TAG}
+export tasktimeestimator_TAG_NAME=${ROLLING_OS_TAG}
+export tasktimeprediction_TAG_NAME=${ROLLING_OS_TAG}
+export tasktimetraining_TAG_NAME=${ROLLING_OS_TAG}
+export tasktimemaintenance_TAG_NAME=${ROLLING_OS_TAG}
+export tasktimeingestion_TAG_NAME=${ROLLING_OS_TAG}
+export edgeservice_TAG_NAME=${ROLLING_OS_TAG}
+export reprocessor_TAG_NAME=${ROLLING_OS_TAG}
+export gogs_TAG_NAME=${ROLLING_OS_TAG}
+
+#####################################################################################################################################################################
+
+export COMPONENT_JAVA_OPTS="-Xms512m -Xmx2048m -XX:+UseG1GC -XX:+UnlockExperimentalVMOptions -XX:G1NewSizePercent=20 -verbose:gc -Xloggc:/component/gc.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -XX:+PrintGCCause -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/component/oom.hprof -XX:+DisableExplicitGC"
+#ACTIVEMQ_OPTS_MEMORY covers heap and GC opions
+export ACTIVEMQ_OPTS_MEMORY="-Xms512m -Xmx4096m -XX:+UseG1GC -XX:+UnlockExperimentalVMOptions -XX:G1NewSizePercent=20 -verbose:gc -Xloggc:/opt/activemq/gc.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -XX:+PrintGCCause -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/opt/activemq/oom.hprof -XX:+DisableExplicitGC"
+export RESTART_POLICY=any
+export STACK_LIST="loadbalancer config monitoring logging platform warehouse-mgmt"
+export SPRING_PROFILES="oracle,docker,logging"
+
+#######################################################
+#######################################################
+#      Spring Cloud Consul Config settings
+#######################################################
+export KV_STORE_TYPE=remote
+export SPRING_CLOUD_CONSUL_CONFIG_ENABLED=true
+export SPRING_CLOUD_CONSUL_CONFIG_FORMAT=files
+export SPRING_CLOUD_CONSUL_CONFIG_BRANCH=stacks/master
+#######################################################
+
+
+#######################################################
+#######################################################
+#           AWPF PROPERTIES
+######################################################
+export MANH_SECURITYFIXES_ENABLED=true
+export AWPF_SECURITYENABLED=true
+export MANH_SECURITY_OAUTH2_CLIENT_AUTHSERVERTOKENURI=${WM_APP_HTTPS_URL}/oauth/token
+export AWPF_MSGUSER=f99usr
+export AWPF_ORG_IDS=1403
+#######################################################
+
+
+#######################################################
+#######################################################
+#           DEPENDANT APPLICATIONS
+#######################################################
+export KV_STORE_HOST=consul
+export KV_STORE_PORT=8500
+#######################################################
+
+#######################################################
+#######################################################
+#           ELASTICSEARCH CONFIG
+#######################################################
+export ES_HOST=elasticsearch
+export ES_PORT=9200
+export ES_CLIENT_PORT=9300
+export ES_CLUSTER_NAME=MA-elasticsearch-cluster
+export ES_JAVA_OPTS="-Xms4g -Xmx4g"
+export LS_JAVA_OPTS="-Xms4g -Xmx4g"
+#######################################################
+
+#######################################################
+#######################################################
+#           DB CONNECTION DETAILS
+#######################################################
+export DB_HOSTNAME=db
+export DB_PORT=1521
+export DB_SID=orcl
+
+#######################################################
+#			MDA/Common Schema details
+#######################################################
+export DB_MDA=mda/mda
+
+#######################################################
+#			Application Schema details
+#######################################################
+export DB_APP=wms/wms
+#######################################################
+
+#######################################################
+#		Warehouse Management Component Scheams
+#######################################################
+export DB_DCORDER=DCORDER/DCORDER
+export DB_DCALLOCATION=DCALLOCATION/DCALLOCATION
+export DB_WORKRELEASE=WORKRELEASE/WORKRELEASE
+export DB_LMCORE=LMCORE/LMCORE
+export DB_MASTERDATA=MASTERDATA/MASTERDATA
+export DB_CUBING=CUBING/CUBING
+export DB_ROUTING=ROUTING/ROUTING
+export DB_DCINVENTORY=DCINVENTORY/DCINVENTORY
+export DB_DEVICEINTEGRATION=DEVICEINTEGRATION/DEVICEINTEGRATION
+export DB_OLPN=OLPN/OLPN
+export DB_DMUIFACADE=DMUIFACADE/DMUIFACADE
+export DB_DCCONSOLIDATION=DCCONSOLIDATION/DCCONSOLIDATION
+export DB_DCLAYOUT=DCLAYOUT/DCLAYOUT
+export DB_MDAORGADAPTER=MDA/MDA
+export DB_TASKTIMEESTIMATOR=TASKTIMEESTIMATOR/TASKTIMEESTIMATOR
+export DB_REPROCESSOR=REPROCESSOR/REPROCESSOR
+#######################################################
+
+#######################################################
+#######################################################
+#           HAPROXY CONFIGS                           #
+#######################################################
+# if FORCE_SSL variable below is set (to any value), will force all HTTP request to be redirected to HTTPS
+export FORCE_SSL=
+
+#######################################################
+#######################################################
+# IMAGE_REPO - default docker registry containing 
+#   images.  This can be overridden on a component 
+#   basis by hard coding value below.  For example, 
+#   to the registry for only LMCORE service you would
+#   change export LMCORE_IMAGE_REPO=$IMAGE_REPO to
+#   export LMCORE_IMAGE_REPO=<some other repo>
+#######################################################
+export IMAGE_REPO=quay.io/manhrd
+
+export DCORDER_IMAGE_REPO=$IMAGE_REPO
+export DCALLOCATION_IMAGE_REPO=$IMAGE_REPO
+export WORKRELEASE_IMAGE_REPO=$IMAGE_REPO
+export LMCORE_IMAGE_REPO=$IMAGE_REPO
+export MASTERDATA_IMAGE_REPO=$IMAGE_REPO
+export CUBING_IMAGE_REPO=$IMAGE_REPO
+export ROUTING_IMAGE_REPO=$IMAGE_REPO
+export DCINVENTORY_IMAGE_REPO=$IMAGE_REPO
+export DEVICEINTEGRATION_IMAGE_REPO=$IMAGE_REPO
+export OLPN_IMAGE_REPO=$IMAGE_REPO
+export DMUIFACADE_IMAGE_REPO=$IMAGE_REPO
+export DMUISEARCH_IMAGE_REPO=$IMAGE_REPO
+export DMUILOGSTASH_IMAGE_REPO=$IMAGE_REPO
+export DCCONSOLIDATION_IMAGE_REPO=$IMAGE_REPO
+export DCLAYOUT_IMAGE_REPO=$IMAGE_REPO
+export MDA_ORG_ADAPTER_IMAGE_REPO=$IMAGE_REPO
+export TASK_TIME_ESTIMATOR_IMAGE_REPO=$IMAGE_REPO
+export TASK_TIME_PREDICTION_IMAGE_REPO=$IMAGE_REPO
+export TASK_TIME_TRAINING_IMAGE_REPO=$IMAGE_REPO
+export TASK_TIME_MAINTENANCE_IMAGE_REPO=$IMAGE_REPO
+export TASK_TIME_INGESTION_IMAGE_REPO=$IMAGE_REPO
+export EDGESERVICE_IMAGE_REPO=$IMAGE_REPO
+export REPROCESSOR_IMAGE_REPO=$IMAGE_REPO
+export CRYPTO_IMAGE_REPO=$IMAGE_REPO
+export GOGS_IMAGE_REPO=$IMAGE_REPO
+
+#######################################################
+#######################################################
+# REPLICAS
+#   Set the number of instances of each service to run.
+#   REPLICAS will be the global value, but it can be 
+#   overridden on a per service basis by just changing
+#   the value below.  For example if you want two 
+#   instances of each service, but for DCORDER you 
+#   want to run 3, you would set REPLICAS=2 and 
+#   DCORDER_REPLICAS=3
+#######################################################
+export REPLICAS=1
+
+export DCORDER_REPLICAS=$REPLICAS
+export DCALLOCATION_REPLICAS=$REPLICAS
+export WORKRELEASE_REPLICAS=$REPLICAS
+export LMCORE_REPLICAS=$REPLICAS
+export MASTERDATA_REPLICAS=$REPLICAS
+export CUBING_REPLICAS=$REPLICAS
+export ROUTING_REPLICAS=$REPLICAS
+export DCINVENTORY_REPLICAS=$REPLICAS
+export DEVICEINTEGRATION_REPLICAS=$REPLICAS
+export OLPN_REPLICAS=$REPLICAS
+export DMUI_EDGEPROXY_REPLICAS=$REPLICAS
+export DMUIFACADE_REPLICAS=$REPLICAS
+export DMUISEARCH_REPLICAS=$REPLICAS
+export DMUILOGSTASH_REPLICAS=$REPLICAS
+export DCCONSOLIDATION_REPLICAS=$REPLICAS
+export DCLAYOUT_REPLICAS=$REPLICAS
+export MDA_ORG_ADAPTER_REPLICAS=$REPLICAS
+export TASK_TIME_ESTIMATOR_REPLICAS=$REPLICAS
+export TASK_TIME_PREDICTION_REPLICAS=$REPLICAS
+export TASK_TIME_TRAINING_REPLICAS=$REPLICAS
+export TASK_TIME_MAINTENANCE_REPLICAS=$REPLICAS
+export TASK_TIME_INGESTION_REPLICAS=$REPLICAS
+export EDGESERVICE_REPLICAS=$REPLICAS
+export REPROCESSOR_REPLICAS=$REPLICAS
+
+export CONSUL_REPLICAS=$REPLICAS
+export LBPROXY_REPLICAS=$REPLICAS
+#######################################################
+
+export ACTIVEMQ_VIRTUAL_HOST=http://activemq.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN},https://activemq.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN}
+export LOGGING_VIRTUAL_HOST=http://logs.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN},https://logs.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN}
+export ELASTIC_VIRTUAL_HOST=http://elastic.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN},https://elastic.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN}
+export CONSUL_VIRTUAL_HOST=http://consul.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN},https://consul.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN}
+export GRAFANA_VIRTUAL_HOST=http://grafana.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN},https://grafana.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN}
+export PROMETHEUS_VIRTUAL_HOST=http://prometheus.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN},https://prometheus.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN}
+export PORTAINER_VIRTUAL_HOST=http://portainer.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN},https://portainer.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN}
+export GOGS_VIRTUAL_HOST=http://gogs.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN},https://gogs.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN}
+export EDGE_VIRTUAL_HOST=http://edge.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN},https://edge.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN}
+export DMUIFACADE_VIRTUAL_HOST=http://dmuifacade.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN},${EDGE_VIRTUAL_HOST},https://dmuifacade.${DEPLOYMENT_SUFFIX}.${EXTERNAL_DOMAIN}
+#######################################################
+
+export REMOVE_LOGS_OLDER_THAN_IN_DAYS=5
+
+export GIT_CONFIG_SERVER_URL=
+export GIT_CONFIG_SERVER_BRANCHES=master
+export GIT_CONFIG_SERVER_SOURCE_ROOT=seed
+
+#######################################################
+#      OAuth2-proxy for 3rd party components          #
+#######################################################
+export OP_ACCESS_TOKEN_URL=${WM_APP_HTTPS_URL}/oauth/token
+export OP_USER_AUTH_URL=${WM_PUBLIC_URL}/oauth/authorize
+export OP_USER_INFO_URL=${WM_APP_HTTPS_URL}/oauth/user/info
+
+#######################################################
+#      HTTPS for Spring Boot applications             #
+#######################################################
+
+#Fully qualified path and filename of the keystore file
+export KEY_STORE_LOCATION=$(pwd)/utilities/sslstore/edge-service-keystore.jks
+#Location in-container to load the keystore to
+export KEY_STORE_LOAD_LOCATION=/sslstore/edge-service-keystore.jks
+#Password to the aforementioned keystore
+export KEY_STORE_PASSWORD=cpkeys
+#Type of aforementioned keystore
+#See https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#KeyStore
+export KEY_STORE_TYPE=PKCS12
+#Alias of the aforementioned keystore
+export KEY_STORE_ALIAS=cp.manh.com
+
+#Fully qualified certificate path for HAPROXY
+export HAPROXY_CERT_LOCATION=../../utilities/sslstore/haproxy-cert.pem
+
+#######################################################
+#      Component JAVA Options Overrides               #
+#######################################################
+
+export edgeservice_JAVA_OPTS='-Dhazelcast.rest.enabled=true -Dhazelcast.merge.first.run.delay.seconds=60'
+export dcorder_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export dcallocation_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export workrelease_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export lmcore_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export masterdata_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export cubing_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export routing_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export dcinventory_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export deviceintegration_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export olpn_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export dmuisearch_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export dmuifacade_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export dcconsolidation_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export dclayout_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export mdaorgadapter_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export tasktimeestimator_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+export reprocessor_JAVA_OPTS=${COMPONENT_JAVA_OPTS}
+
+#######################################################
+#       EXTENSION CUSTOM VARIABLES                    #
+#######################################################
+
+#   place any env variables needed for your extension(s) here.
+
+
+#######################################################
+
+
+#######################################################
+#   DO NOT EDIT BELOW THIS LINE......                 #
+#######################################################
